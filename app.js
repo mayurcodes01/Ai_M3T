@@ -31,20 +31,26 @@ function onHumanMove(e) {
         return;
     }
 
-    aiMove(); // AI plays after user
+    setTimeout(aiMove, 200); // AI thinking delay
 }
 
-async function aiMove() {
-    const res = await fetch("/move", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ board })
-    });
+function aiMove() {
+    let bestScore = -999;
+    let move = null;
 
-    const data = await res.json();
-    const move = data.move;
+    for (let i = 9; i--;) {
+        if (board[i] === '') {
+            board[i] = ai;
+            let score = minimax(board, human);
+            board[i] = '';
+            if (score > bestScore) {
+                bestScore = score;
+                move = i;
+            }
+        }
+    }
 
-    if (move !== null && move !== undefined) {
+    if (move !== null) {
         board[move] = ai;
         renderBoard();
 
@@ -53,13 +59,33 @@ async function aiMove() {
     }
 }
 
+function minimax(b, player) {
+    if (checkWinner(b) === human) return -1;
+    if (checkWinner(b) === ai) return 1;
+    if (!b.includes('')) return 0;
+
+    let scores = [];
+
+    for (let i = 0; i < 9; i++) {
+        if (b[i] === '') {
+            b[i] = player;
+            const score = minimax(b, player === human ? ai : human);
+            b[i] = '';
+            scores.push(score);
+        }
+    }
+
+    return player === ai ? Math.max(...scores) : Math.min(...scores);
+}
+
 function checkWinner(b) {
     const wins = [
         [0,1,2],[3,4,5],[6,7,8],
         [0,3,6],[1,4,7],[2,5,8],
         [0,4,8],[2,4,6]
     ];
-    for (const [a,b1,c] of wins) {
+
+    for (const [a, b1, c] of wins) {
         if (b[a] && b[a] === b[b1] && b[a] === b[c]) return b[a];
     }
     return b.includes('') ? null : 'Tie';
@@ -69,13 +95,13 @@ function endGame(winner) {
     gameOver = true;
     setTimeout(() => {
         if (winner === 'Tie') {
-            alert("It's a tie!");
+            alert("It's a tie! 🤝");
         } else if (winner === human) {
             alert("You WIN! 🎉");
         } else {
             alert("AI Wins 😎");
         }
-    }, 200);
+    }, 300);
 }
 
 function restartGame() {
@@ -84,5 +110,5 @@ function restartGame() {
     renderBoard();
 }
 
-// Initial rendering
+// Initial
 renderBoard();
