@@ -31,27 +31,27 @@ function onHumanMove(e) {
         return;
     }
 
-    setTimeout(aiMove, 200); // AI thinking delay
+    setTimeout(aiMove, 200);
 }
 
 function aiMove() {
-    let bestScore = -999;
-    let move = null;
+    let bestMove = null;
+    let bestScore = -Infinity;
 
-    for (let i = 9; i--;) {
+    for (let i = 0; i < 9; i++) {
         if (board[i] === '') {
             board[i] = ai;
-            let score = minimax(board, human);
+            const score = minimax(board, human);
             board[i] = '';
             if (score > bestScore) {
                 bestScore = score;
-                move = i;
+                bestMove = i;
             }
         }
     }
 
-    if (move !== null) {
-        board[move] = ai;
+    if (bestMove !== null) {
+        board[bestMove] = ai;
         renderBoard();
 
         const result = checkWinner(board);
@@ -60,18 +60,17 @@ function aiMove() {
 }
 
 function minimax(b, player) {
-    if (checkWinner(b) === human) return -1;
-    if (checkWinner(b) === ai) return 1;
+    const result = checkWinner(b);
+    if (result === human) return -1;
+    if (result === ai) return 1;
     if (!b.includes('')) return 0;
 
-    let scores = [];
-
+    const scores = [];
     for (let i = 0; i < 9; i++) {
         if (b[i] === '') {
             b[i] = player;
-            const score = minimax(b, player === human ? ai : human);
+            scores.push(minimax(b, player === human ? ai : human));
             b[i] = '';
-            scores.push(score);
         }
     }
 
@@ -79,13 +78,13 @@ function minimax(b, player) {
 }
 
 function checkWinner(b) {
-    const wins = [
+    const winPatterns = [
         [0,1,2],[3,4,5],[6,7,8],
         [0,3,6],[1,4,7],[2,5,8],
         [0,4,8],[2,4,6]
     ];
 
-    for (const [a, b1, c] of wins) {
+    for (const [a,b1,c] of winPatterns) {
         if (b[a] && b[a] === b[b1] && b[a] === b[c]) return b[a];
     }
     return b.includes('') ? null : 'Tie';
@@ -94,13 +93,7 @@ function checkWinner(b) {
 function endGame(winner) {
     gameOver = true;
     setTimeout(() => {
-        if (winner === 'Tie') {
-            alert("It's a tie! 🤝");
-        } else if (winner === human) {
-            alert("You WIN! 🎉");
-        } else {
-            alert("AI Wins 😎");
-        }
+        alert(winner === 'Tie' ? "It's a Tie! " : (winner === human ? "You Win! " : "AI Wins."));
     }, 300);
 }
 
@@ -110,5 +103,4 @@ function restartGame() {
     renderBoard();
 }
 
-// Initial
 renderBoard();
